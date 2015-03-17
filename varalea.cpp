@@ -2,6 +2,8 @@
 #define VAR_ALEA_HPP
 #include <cmath>
 
+// Mathieu a une petite chaussette
+
 void init_alea(unsigned seed = static_cast<unsigned>(std::time(0))) {
 	init_genrand(seed);
 };
