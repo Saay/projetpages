@@ -26,7 +26,7 @@ class unif :  randomVar<genType>  {
   }
 
   double operator()() {
-    randomVar<genType>::current = unifDistrib(randomVar<genType>::gen());
+    randomVar<genType>::current = unifDistrib(randomVar<genType>::gen);
     return randomVar<genType>::current;
   }
 
@@ -51,8 +51,10 @@ class gaussian : randomVar<genType> {
   std::normal_distribution<> gaussianDistrib;
 };
 
+
+
 template <class genType = std::mt19937>
-class correlGaussian : randomVar<genType> {
+class correlGaussian : public randomVar<genType> {
  public:
   correlGaussian (genType & gen,double rho = 0.0) : randomVar<genType>(gen), rho(rho), G(gaussian<genType>(gen)), firstQuery(true) {
     if (rho > 1.0 or rho <0.0) { rho = 0.0;}
