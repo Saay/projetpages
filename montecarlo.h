@@ -10,11 +10,13 @@ class monteCarlo {
  public:
  monteCarlo(scheme& S): S(S) {}
   virtual double payoff(const std::vector<double>& path, const std::vector<double>& timeStep) = 0;
-  virtual double nSimulations(int nbSimulation);
- 
+  virtual double doSimulations(int nbSimulation);
+  
+  std::vector<double>* getRawResult();
+
     protected:
   scheme& S;
-  double payoffResult;
+  double payoffResult = 0.0;
   double result = 0.0;
   int nbAlreadySimulated = 0;
   std::vector<double> rawResult;

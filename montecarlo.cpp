@@ -2,13 +2,19 @@
 
 
 
-double monteCarlo::nSimulations(int n) {
+double monteCarlo::doSimulations(int n) {
+  rawResult.resize(n);
   for (int i = 0; i<n; ++i) {
     S.fullSimulation();
-    result += payoff(*(S.getResult()),*(S.getTimeStep()));
+    payoffResult = payoff(*(S.getResult()),*(S.getTimeStep()));
+    rawResult[i] = payoffResult;
+    result += payoffResult;
+    nbAlreadySimulated ++;
   }
-  return result;
+  return result/(double)n;
 }
+
+std::vector<double>* monteCarlo::getRawResult() {return &rawResult;}
 
 
 double vanillePricing::payoff(const std::vector<double>& path, const std::vector<double>& timeStep) {
