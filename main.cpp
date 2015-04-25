@@ -19,15 +19,14 @@ int main (int argc, char** argv)
   vector<double> timeStep(1000,0.001);
   CIR vol(CG, timeStep);
   heston H(CG, vol);
-  vanillePricing MC(H);
+  vanillePricing MC(H,false);
   asiatPricing AP(H);
 
-  MC.doSimulations(1000);
-  AP.doSimulations(1000);
-  cerr << "yo" << endl;
-  T.printMonteCarlo(MC);
-  MC.doSimulations(1000);
-  T.printMonteCarlo(MC);
-  T.printPath(H);
+
+  cout <<   MC.doSimulations(100000) << endl;
+  //T.printMonteCarlo(MC);
+  cout << MC.doSimulations(100000) << endl;
+  //T.printMonteCarlo(MC);
+  //T.printPath(H);
   return 0;
 }

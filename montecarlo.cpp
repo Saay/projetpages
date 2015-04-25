@@ -1,18 +1,30 @@
 #include "montecarlo.h"
 
 
-
 double monteCarlo::doSimulations(int n) {
-  rawResult.resize(n);
+  if (saveResult) {
+    rawResult.resize(n);
+  }
+  result = 0.0;
+  nbAlreadySimulated = 0;
   for (int i = 0; i<n; ++i) {
-    S.fullSimulation();
-    payoffResult = payoff(*(S.getResult()),*(S.getTimeStep()));
-    rawResult[i] = payoffResult;
-    result += payoffResult;
-    nbAlreadySimulated ++;
+    oneStep();
   }
   return result/(double)n;
 }
+
+inline void monteCarlo::oneStep() {
+  S.fullSimulation();
+  payoffResult = payoff(*(S.getResult()),*(S.getTimeStep()));
+  result += payoffResult;
+
+  if (saveResult) {
+    rawResult[nbAlreadySimulated] = payoffResult;
+  }
+  nbAlreadySimulated ++;
+}
+
+
 
 std::vector<double>* monteCarlo::getRawResult() {return &rawResult;}
 
