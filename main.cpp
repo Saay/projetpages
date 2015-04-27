@@ -2,7 +2,7 @@
 #include <random>
 #include <functional>
 #include <typeinfo>
-
+#include <time.h>
 #include "randomvar.h"
 #include "scheme.h"
 #include "montecarlo.h"
@@ -14,24 +14,30 @@ using namespace std;
 
 int main (int argc, char** argv)
 {
+
   test T;
-  mt19937 gen;
+  mt19937 gen(0);
+  mt19937 gen2(0);
   correlGaussian<> CG(gen,0.5);
+  correlGaussian<> CG2(gen2,0.5);
   gaussian<> G(gen);
   vector<double> timeStep(1000,0.001);
   CIR vol(CG, timeStep);
   hestonPP HPP(CG, vol);
+  heston H(CG2,vol);
   vanillePricing MC(HPP);
-  asiatPricing AP(HPP);
+  vanillePricing MC2(H);
 
 
-  cout <<   MC.doSimulationsWithPrecision(0.01) << endl;
+  //cout <<   MC.doSimulations(1000) << endl;
+  //cout <<   MC2.doSimulations(1000) << endl;
   //T.printMonteCarlo(MC);
   //  cout << MC.doSimulations(10000) << endl;
   //T.printMonteCarlo(MC);
-  HPP.fullSimulation();
+  HPP.fullSimulation(true);
   T.printPath(HPP);
-  HPP.fullSimulation();
-  T.printPath(HPP);
+  H.fullSimulation();
+  T.printPath(H);
+  T.printPath(*H.getSigma());
   return 0;
 }

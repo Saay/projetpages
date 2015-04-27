@@ -59,6 +59,10 @@ class CIR : public scheme {
   virtual double nextStep();
   
   std::string* getName() {name.assign("CIR");return &name;}
+  double getA()  {return a;};
+  double getB()  {return b;};
+  double getNu() {return nu;};
+
  private:
   double a = 1.0,b = 0.5,nu = 0.5;
 };
@@ -70,17 +74,21 @@ class heston : public scheme {
  heston(randomVar<>& V, CIR& sigma, double mu, 
 	const std::vector<double>& timeStep, std::vector<double>& result) : 
   scheme(V,timeStep,result), sigma(&sigma), mu(mu) {
-   }
+    name.assign("Heston"); 
+  }
 
  heston(randomVar<>& V, CIR& sig) : 
   scheme(V,*sig.getTimeStep()), sigma(&(sig)) {
+    name.assign("Heston");
    };
 
   
   virtual double nextStep();
 
   virtual double getDrift();
- protected:
+  virtual void resetParameters();
+  CIR * getSigma() {return sigma;}
+protected:
   CIR* sigma;
   double mu = 0.1;
 }; 
@@ -89,19 +97,26 @@ class heston : public scheme {
 //Heston as described in the paper of Panloup and Pagès.
 class hestonPP : public heston {
  public: 
- hestonPP(randomVar<> & V, CIR & sigma, const std::vector<double>& timeStep, 
+ hestonPP(correlGaussian<> & V, CIR & sigma, const std::vector<double>& timeStep,
 	  std::vector<double>& result): 
-  heston(V,sigma,-1.0, timeStep,result) {
+  heston(V,sigma,-1.0, timeStep,result), V(V) {
     name.assign("HestonPP");
   }
- hestonPP(randomVar<>& V, CIR& sig) : 
-  heston(V,sig) {
+ hestonPP(correlGaussian<>& V, CIR& sig) : 
+  heston(V,sig), V(V) {
     mu = 0.1;
     name.assign("HestonPP");
   };
-
+  virtual double nextStep();
   virtual void fullSimulation(bool asiatPayoff=false);
   double retrieveSt(int time);
+  void retrieveSt();
+ private:
+  correlGaussian<> & V;
+  double delta = 0.0;
+  double intY = 0.0;
+  double intSigma = 0.0;
+
 };
 
 

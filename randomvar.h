@@ -59,7 +59,8 @@ template <class genType = std::mt19937>
  void next();
  double w1() const {return _w1;}
  double w2() const {return _w2;}
- 
+ double getRho() const {return rho;}
+
  private:
  
  double rho;
