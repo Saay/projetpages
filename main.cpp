@@ -16,8 +16,10 @@ int main (int argc, char** argv)
 {
 
   test T;
-  mt19937 gen(0);
-  mt19937 gen2(0);
+  int s;
+  cin >> s;
+  mt19937 gen(s);
+  mt19937 gen2(s);
   correlGaussian<> CG(gen,0.5);
   correlGaussian<> CG2(gen2,0.5);
   gaussian<> G(gen);

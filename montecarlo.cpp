@@ -77,3 +77,20 @@ double asiatPricing::payoff(const std::vector<double>& path, const std::vector<d
 }
 
 
+double vanillePricing::doTwoStepRR(int nbSimulation) {
+  scheme S2 = S.fullCopy();
+  const std::vector<double>* timeStep1 = S.getTimeStep();
+  std::vector<double> timeStep2(timeStep1->size() * 2);
+  for (int i = 0; i < timeStep1->size(); ++i)
+    {
+      timeStep2[i] = (*timeStep1)[i] / 2;
+      timeStep2[i+1] = (*timeStep1)[i] / 2;
+    }
+  S2.setTimeStep(timeStep2);
+  vanillePricing MC2(S2);
+  
+  double payoff1 = doSimulations(nbSimulation);
+  double payoff2 = MC2.doSimulations(nbSimulation);
+  
+  return 2* payoff2 - payoff1;
+}

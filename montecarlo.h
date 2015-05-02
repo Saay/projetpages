@@ -20,8 +20,9 @@ class monteCarlo {
   void setQuantile(double quant);
 
   void computeVariance();
+  
 
-
+  scheme& getScheme() {return S;}
  protected:
   double quantile = 2.0;
   scheme& S;
@@ -40,6 +41,9 @@ class vanillePricing : public monteCarlo {
   monteCarlo(S,saveResult), K(strike) {};
   virtual double payoff(const std::vector<double>& path, const std::vector<double>& timeStep);
 
+
+
+  double doTwoStepRR(int nbSimulation);
  private:
   double K;
 };
@@ -48,6 +52,9 @@ class asiatPricing : public monteCarlo {
  public:
  asiatPricing(scheme& S, bool saveResult = true): monteCarlo(S,saveResult) {};
   virtual double payoff(const std::vector<double>& path, const std::vector<double>& timeStep);
+
+
+  double doTwoStepRR(int nbSimulation);
 };
 
 #endif

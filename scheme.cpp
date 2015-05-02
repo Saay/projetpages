@@ -112,3 +112,5 @@ void hestonPP::fullSimulation(bool asiatPayoff) {
     result[result.size() -1] = retrieveSt(result.size()-1);
   } 
 }
+
+scheme::scheme(scheme & S): V( *(S.getVar())), timeStep(*(S.getTimeStep())) {}

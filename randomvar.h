@@ -10,8 +10,13 @@ template <class genType = std::mt19937>
  public:
  randomVar (genType & gen,double current=0.0): gen(gen), current(current) {}
  
- virtual double operator()() = 0;
- 
+ virtual double operator()();
+ virtual randomVar fullCopy() {
+   double current2 = current;
+   genType gen2 = *(new genType(gen));
+   randomVar RV2(gen2,current2);
+   return RV2;
+ }
  protected:
  genType & gen;
  double current;

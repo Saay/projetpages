@@ -18,6 +18,8 @@ class scheme {
     result.resize(timeStep.size());
   };
   
+  scheme(scheme & S);
+  
   virtual void fullSimulation(bool asiatPayoff=false); 
   virtual double nextStep() = 0;
   
@@ -27,6 +29,7 @@ class scheme {
   std::vector<double> const *  getTimeStep() const ;
   virtual std::string*         getName();
   virtual double               getDrift();
+  randomVar<>* getVar() {return &V;}
 
   bool isSimulationFinished() const;
 
@@ -58,11 +61,14 @@ class CIR : public scheme {
   double         nextStep(const double& deltaTime, const double& deltaW) const; 
   virtual double nextStep();
   
+
   std::string* getName() {name.assign("CIR");return &name;}
   double getA()  {return a;};
   double getB()  {return b;};
   double getNu() {return nu;};
-
+  void   setA(double aa) {a = aa;}
+  void   setB(double bb)  {b = bb;}
+  void   setNu(double nunu) {nu = nunu;}
  private:
   double a = 1.0,b = 0.5,nu = 0.5;
 };
@@ -82,10 +88,13 @@ class heston : public scheme {
     name.assign("Heston");
    };
 
+
+  virtual heston fullCopy(std::vector<double> timeStep2);
   
   virtual double nextStep();
 
   virtual double getDrift();
+  void setDrift(double d) {mu = d;}
   virtual void resetParameters();
   CIR * getSigma() {return sigma;}
 protected:
@@ -102,15 +111,18 @@ class hestonPP : public heston {
   heston(V,sigma,-1.0, timeStep,result), V(V) {
     name.assign("HestonPP");
   }
+
  hestonPP(correlGaussian<>& V, CIR& sig) : 
   heston(V,sig), V(V) {
     mu = 0.1;
     name.assign("HestonPP");
   };
+
   virtual double nextStep();
   virtual void fullSimulation(bool asiatPayoff=false);
   double retrieveSt(int time);
   void retrieveSt();
+
  private:
   correlGaussian<> & V;
   double delta = 0.0;

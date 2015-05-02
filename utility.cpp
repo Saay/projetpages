@@ -20,7 +20,7 @@ namespace utl {
   }
 
   double integrale(const std::vector<double>& integrand, const std::vector<double>& timeStep, int iStart, int iEnd) {
-    double result = 0;
+    double result = 0.0;
     for (int i = iStart; i< iEnd +1; ++i) {
       result += integrand[i] * timeStep[i];
     }
