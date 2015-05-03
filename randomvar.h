@@ -3,19 +3,23 @@
 
 #include<random>
 #include<cmath>
-
+#include<iostream>
 
 template <class genType = std::mt19937>
   class randomVar {
  public:
  randomVar (genType & gen,double current=0.0): gen(gen), current(current) {}
  
- virtual double operator()();
- virtual randomVar fullCopy() {
-   double current2 = current;
-   genType gen2 = *(new genType(gen));
-   randomVar RV2(gen2,current2);
-   return RV2;
+ virtual double operator()() = 0;
+
+ virtual void generateArray(std::vector<double>& array, int size)
+ {
+   array.resize(size);
+
+   for (int i = 0; i < size; ++i) {
+     array.at(i) = operator()();
+   }
+
  }
  protected:
  genType & gen;
@@ -52,49 +56,5 @@ class gaussian : public randomVar<genType> {
 
 
 
-template <class genType = std::mt19937>
-  class correlGaussian : public randomVar<genType> {
- public:
- correlGaussian (genType & gen,double rho = 0.0) : randomVar<genType>(gen), rho(rho), G(gen), firstQuery(true) {
-    if (rho > 1.0 or rho <-1.0) { rho = 0.0;}
-  }
- 
- virtual double operator()();
- 
- void next();
- double w1() const {return _w1;}
- double w2() const {return _w2;}
- double getRho() const {return rho;}
-
- private:
- 
- double rho;
- gaussian<genType> G;
- double _w1;
- double _w2;
- bool firstQuery;
-};
-
-template<class genType>
-double correlGaussian<genType>::operator()() {
-  if (firstQuery) {
-    _w1 = G();
-    _w2 = G();
-    _w2 = rho*_w1 + std::sqrt(1-rho*rho)*_w2;
-    firstQuery = false;
-     return _w1;
-  } else {
-    firstQuery = true;
-    return _w2;
-  }
-}
-
-
-template<class genType>
-void correlGaussian<genType>::next() {
-  _w1 = G();
-  _w2 = G();
-  _w2 = rho*_w1 + std::sqrt(1-rho*rho)*_w2;
-}
 
 #endif

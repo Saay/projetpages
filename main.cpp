@@ -3,43 +3,45 @@
 #include <functional>
 #include <typeinfo>
 #include <time.h>
+#include <chrono>
 #include "randomvar.h"
 #include "scheme.h"
 #include "montecarlo.h"
 #include "test.h"
-
+#include "utility.h"
 using namespace std;
-
-
+using namespace std::chrono;
 
 int main (int argc, char** argv)
 {
-
+  unsigned seed = chrono::system_clock::now().time_since_epoch().count();
   test T;
-  int s;
-  cin >> s;
-  mt19937 gen(s);
-  mt19937 gen2(s);
-  correlGaussian<> CG(gen,0.5);
-  correlGaussian<> CG2(gen2,0.5);
+  //cin >> s;
+  mt19937 gen(seed);
   gaussian<> G(gen);
-  vector<double> timeStep(1000,0.001);
-  CIR vol(CG, timeStep);
-  hestonPP HPP(CG, vol);
-  heston H(CG2,vol);
-  vanillePricing MC(HPP);
-  vanillePricing MC2(H);
-
-
-  //cout <<   MC.doSimulations(1000) << endl;
-  //cout <<   MC2.doSimulations(1000) << endl;
-  //T.printMonteCarlo(MC);
-  //  cout << MC.doSimulations(10000) << endl;
-  //T.printMonteCarlo(MC);
-  HPP.fullSimulation(true);
-  T.printPath(HPP);
-  H.fullSimulation();
-  T.printPath(H);
-  T.printPath(*H.getSigma());
-  return 0;
+  vector<double> timeStepCst;
+  vector<double> timeStepDec;
+  utl::generateCstTimeStep(1.0, 1000, timeStepCst);
+  utl::generateTimeStep(1.0, 1000,1.0, timeStepDec);
+  CIR volC(G, timeStepCst);
+  heston HC(G, volC);
+  CIR volD(G, timeStepDec);
+  heston HD(G, volD);
+  //hestonPP HPP(G,vol);
+  vanillePricing MCC(HC, 1.0);
+  vanillePricing MCD(HD, 1.0);
+  
+  T.presentResult(MCC, 100000);
+  T.presentResult(MCD, 100000);
+  //H.fullSimulation();
+    
+  //  T.printPath(H);
+    
+  //  HPP.fullSimulation();
+  
+  //T.printPath(HPP);
+  //T.printPath(*H.getSigma());
+  
+    
+    return 0;
 }

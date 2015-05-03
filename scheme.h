@@ -9,34 +9,39 @@
 
 class scheme {
  public:
- scheme(randomVar<>& V, const std::vector<double>& timeStep, 
-	std::vector<double> & result): 
-  V(V), timeStep(timeStep), result(result), index(0) {}
   
- scheme(randomVar<>& V, const std::vector<double>& timeStep): 
-  V(V), timeStep(timeStep) {
+ scheme(randomVar<>& V, std::vector<double>& timeStep): 
+  V(V), timeStep(&timeStep) {
     result.resize(timeStep.size());
+    brownien = new std::vector<double>;
   };
   
-  scheme(scheme & S);
-  
-  virtual void fullSimulation(bool asiatPayoff=false); 
+  ~scheme() {}
+
+  virtual void fullSimulation(bool generateBrownien = true); 
   virtual double nextStep() = 0;
   
 
   void resetParameters();
+
+  std::vector<double>*         getBrownien();
   std::vector<double>*         getResult();
-  std::vector<double> const *  getTimeStep() const ;
+  std::vector<double> *        getTimeStep();
   virtual std::string*         getName();
   virtual double               getDrift();
-  randomVar<>* getVar() {return &V;}
-
+  randomVar<>*                 getRandomVar();
+  virtual double               getRho();
   bool isSimulationFinished() const;
 
 
+  virtual void setRho(double r);
+  virtual void setTimeStep(std::vector<double>* Ts, std::vector<double>* Ts2 = NULL);
+  virtual void setBrownien(std::vector<double>* w1, std::vector<double>* W2 = NULL);
+
  protected:
   randomVar<>& V;
-  std::vector<double> const & timeStep;
+  std::vector<double> * timeStep;
+  std::vector<double> * brownien;
   std::vector<double> result;
 
 
@@ -45,6 +50,7 @@ class scheme {
   int index = 0;
   std::string name;
 
+  double rho = 0.5;
   bool simulationFinished = false;
 };
 
@@ -53,10 +59,12 @@ class scheme {
 class CIR : public scheme {
  public:
  CIR(randomVar<>& V, double a, double b, double nu, 
-     const std::vector<double>& timeStep, std::vector<double>& result): 
-  scheme(V,timeStep,result), a(a),b(b),nu(nu) {}
+     std::vector<double>& timeStep): 
+  scheme(V,timeStep), a(a),b(b),nu(nu) {
+    x0 = b;}
 
- CIR(randomVar<>& V, const std::vector<double>& timeStep) : scheme(V,timeStep) {}
+ CIR(randomVar<>& V, std::vector<double>& timeStep) : scheme(V,timeStep) {
+    x0 = b;}
 
   double         nextStep(const double& deltaTime, const double& deltaW) const; 
   virtual double nextStep();
@@ -70,7 +78,7 @@ class CIR : public scheme {
   void   setB(double bb)  {b = bb;}
   void   setNu(double nunu) {nu = nunu;}
  private:
-  double a = 1.0,b = 0.5,nu = 0.5;
+  double a = 1.0,b = 1.0,nu = 1.0;
 };
 
 
@@ -78,8 +86,8 @@ class CIR : public scheme {
 class heston : public scheme {
  public:
  heston(randomVar<>& V, CIR& sigma, double mu, 
-	const std::vector<double>& timeStep, std::vector<double>& result) : 
-  scheme(V,timeStep,result), sigma(&sigma), mu(mu) {
+	std::vector<double>& timeStep) : 
+  scheme(V,timeStep), sigma(&sigma), mu(mu) {
     name.assign("Heston"); 
   }
 
@@ -89,16 +97,22 @@ class heston : public scheme {
    };
 
 
-  virtual heston fullCopy(std::vector<double> timeStep2);
-  
+  virtual void fullSimulation(bool generateBrownien = true); 
   virtual double nextStep();
+
+
+
+  virtual void setBrownien(std::vector<double>* w1, std::vector<double>* W2 = NULL);
+  virtual void setTimeStep(std::vector<double>* Ts, std::vector<double>* Ts2 = NULL);
 
   virtual double getDrift();
   void setDrift(double d) {mu = d;}
   virtual void resetParameters();
   CIR * getSigma() {return sigma;}
-protected:
+
+protected:  
   CIR* sigma;
+  std::vector<double>* sigmaResult;
   double mu = 0.1;
 }; 
 
@@ -106,25 +120,26 @@ protected:
 //Heston as described in the paper of Panloup and Pagès.
 class hestonPP : public heston {
  public: 
- hestonPP(correlGaussian<> & V, CIR & sigma, const std::vector<double>& timeStep,
-	  std::vector<double>& result): 
-  heston(V,sigma,-1.0, timeStep,result), V(V) {
+ hestonPP(randomVar<> & V, CIR & sigma, std::vector<double>& timeStep): 
+  heston(V,sigma,-1.0, timeStep) {
     name.assign("HestonPP");
+    x0 = 1.0;
   }
 
- hestonPP(correlGaussian<>& V, CIR& sig) : 
-  heston(V,sig), V(V) {
+ hestonPP(randomVar<>& V, CIR& sig) : 
+  heston(V,sig) {
     mu = 0.1;
     name.assign("HestonPP");
+    x0 = 1.0;
   };
 
   virtual double nextStep();
-  virtual void fullSimulation(bool asiatPayoff=false);
+  virtual void fullSimulation(bool generateBrownien = true);
   double retrieveSt(int time);
   void retrieveSt();
 
+
  private:
-  correlGaussian<> & V;
   double delta = 0.0;
   double intY = 0.0;
   double intSigma = 0.0;
